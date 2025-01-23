@@ -21,7 +21,7 @@ Este proyecto permite a los usuarios iniciar sesión con su cuenta de Spotify y 
 ## Instalación y Configuración
 ### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/tu_usuario/spotify-playlist-creator.git
+git clone https://github.com/Moncadf/spotify-playlist-creator.git
 cd spotify-playlist-creator
 ```
 
