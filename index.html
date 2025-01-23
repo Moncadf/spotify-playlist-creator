@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Playlist Creator</title>
+</head>
+
+<body>
+  <h1>Spotify Playlist Creator</h1>
+  <button id="login">Inicia sesión con Spotify</button>
+  <button id="createPlaylist" disabled>Crear Playlist</button>
+
+  <script>
+    const clientId = '8d43baa50ae84d8b929052203342008d'; // Reemplaza con tu Client ID
+    const redirectUri = 'http://localhost:5500'; // Redirige al index.html
+    const scopes = 'user-top-read playlist-modify-public playlist-modify-private';
+
+    const loginButton = document.getElementById('login');
+    const createPlaylistButton = document.getElementById('createPlaylist');
+    let accessToken = null;
+
+    // Redirige al usuario para autenticarse
+    loginButton.onclick = () => {
+      const authUrl = `https://accounts.spotify.com/authorize?response_type=token&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+      window.location.href = authUrl;
+    };
+
+    // Extraer el token de la URL después de redirigir
+    window.onload = () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        accessToken = hash.split('&')[0].split('=')[1];
+        console.log('Token de acceso:', accessToken);
+
+        // Habilitar el botón para crear la playlist
+        createPlaylistButton.disabled = false;
+      }
+    };
+
+    // Crear la playlist
+    createPlaylistButton.onclick = async () => {
+      if (!accessToken) {
+        alert('Primero debes iniciar sesión.');
+        return;
+      }
+
+      // Obtener las canciones más escuchadas
+      const topTracksResponse = await fetch('https://api.spotify.com/v1/me/top/tracks?time_range=long_term&limit=50', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const topTracks = await topTracksResponse.json();
+      const tracksUris = topTracks.items.map(track => track.uri);
+
+      // Obtener el usuario actual
+      const userResponse = await fetch('https://api.spotify.com/v1/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const user = await userResponse.json();
+
+      // Crear una nueva playlist
+      const playlistResponse = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: 'Mis 50 canciones más escuchadas',
+          description: 'Playlist creada automáticamente con mis top 50 canciones.',
+          public: false,
+        }),
+      });
+      const playlist = await playlistResponse.json();
+
+      // Añadir canciones a la playlist
+      await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ uris: tracksUris }),
+      });
+
+      alert(`Playlist "${playlist.name}" creada exitosamente!`);
+    };
+  </script>
+</body>
+
+</html>

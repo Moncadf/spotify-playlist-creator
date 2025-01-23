@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Playlist Creator</title>
+</head>
+
+<body>
+    <h1>Spotify Playlist Creator</h1>
+    <button id="login-btn">Inicia sesión con Spotify</button>
+    <button id="create-playlist-btn" style="display: none;">Crear Playlist</button>
+    <p id="status"></p>
+
+    <script>
+        // Configura las credenciales de tu aplicación de Spotify
+        const clientId = '8d43baa50ae84d8b929052203342008d'; // Reemplaza con tu client ID
+        const redirectUri = 'http://localhost:5500/callback'; // Reemplaza con tu redirect URI
+        const scopes = [
+            'user-top-read',
+            'playlist-modify-public',
+            'playlist-modify-private'
+        ];
+
+        let accessToken = null;
+
+        // Función para redirigir al usuario a la página de autenticación de Spotify
+        function redirectToSpotifyLogin() {
+            const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(
+                redirectUri
+            )}&scope=${encodeURIComponent(scopes.join(' '))}`;
+            window.location.href = authUrl;
+        }
+
+        // Extrae el token de acceso del hash de la URL
+        function getAccessTokenFromUrl() {
+            const hash = window.location.hash;
+            if (hash) {
+                const params = new URLSearchParams(hash.substring(1));
+                return params.get('access_token');
+            }
+            return null;
+        }
+
+        // Función genérica para realizar llamadas a la API de Spotify
+        async function fetchSpotifyApi(endpoint, method = 'GET', body = null) {
+            const res = await fetch(`https://api.spotify.com/${endpoint}`, {
+                method,
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json',
+                },
+                body: body ? JSON.stringify(body) : null,
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error.message);
+            }
+            return await res.json();
+        }
+
+        // Obtiene las 50 canciones más escuchadas del usuario
+        async function getTopTracks() {
+            const data = await fetchSpotifyApi('v1/me/top/tracks?limit=50');
+            return data.items.map(track => track.uri);
+        }
+
+        // Crea una playlist y añade canciones
+        async function createPlaylistWithTopTracks() {
+            document.getElementById('status').textContent = 'Creando playlist...';
+
+            // Obtén el ID del usuario
+            const user = await fetchSpotifyApi('v1/me');
+            const userId = user.id;
+
+            // Crea la playlist
+            const playlist = await fetchSpotifyApi(
+                `v1/users/${userId}/playlists`,
+                'POST',
+                {
+                    name: 'Mis 50 canciones más escuchadas',
+                    description: 'Playlist generada automáticamente',
+                    public: false,
+                }
+            );
+
+            // Obtén las canciones más escuchadas y añádelas a la playlist
+            const topTracks = await getTopTracks();
+            await fetchSpotifyApi(
+                `v1/playlists/${playlist.id}/tracks`,
+                'POST',
+                { uris: topTracks }
+            );
+
+            document.getElementById('status').textContent = `¡Playlist creada! Mira tu playlist aquí: 
+        <a href="https://open.spotify.com/playlist/${playlist.id}" target="_blank">Abrir Playlist</a>`;
+        }
+
+        // Configuración al cargar la página
+        window.onload = () => {
+            // Verifica si hay un token en la URL
+            accessToken = getAccessTokenFromUrl();
+            if (accessToken) {
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('create-playlist-btn').style.display = 'block';
+            }
+
+            // Configura los botones
+            document.getElementById('login-btn').onclick = redirectToSpotifyLogin;
+            document.getElementById('create-playlist-btn').onclick = createPlaylistWithTopTracks;
+        };
+    </script>
+</body>
+
+</html>
