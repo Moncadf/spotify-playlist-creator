@@ -1,4 +1,3 @@
-
 # 🎵 Spotify Playlist Creator
 
 ## ✨ Descripción
@@ -10,6 +9,7 @@ Este proyecto permite a los usuarios iniciar sesión con su cuenta de Spotify y 
 - ✅ Autenticación de usuario mediante OAuth 2.0.
 - 🎧 Obtención de las 50 canciones más escuchadas del usuario.
 - 📝 Creación de una nueva playlist personalizada con estas canciones.
+- 🎨 Interfaz mejorada con un diseño moderno y responsivo.
 
 ---
 
@@ -27,8 +27,9 @@ cd spotify-playlist-creator
 ```
 
 ### 2️⃣ Configurar el proyecto
-1. Abre el archivo `index.html`.
-2. Reemplaza los siguientes valores:
+1. Asegúrate de que los archivos `index.html` y `style.css` estén en la misma carpeta.
+2. Abre el archivo `index.html`.
+3. Reemplaza los siguientes valores:
    - `TU_CLIENT_ID` con el Client ID de tu aplicación de Spotify.
    - `redirectUri` con la URL de redirección que has configurado (por ejemplo, `http://localhost:5500`).
 
@@ -53,12 +54,14 @@ Visita `http://localhost:5500` en tu navegador.
 
 ## 📋 Notas
 - La playlist se crea como **privada** por defecto.
+- La interfaz tiene un diseño responsivo con fondo degradado y botones estilizados.
 - Si encuentras errores relacionados con permisos, asegúrate de haber incluido los scopes necesarios: `user-top-read`, `playlist-modify-public`, `playlist-modify-private`.
 
 ---
 
 ## 🛠️ Tecnologías utilizadas
 - **HTML5**: Estructura de la página.
+- **CSS3**: Diseño y estilos modernos.
 - **JavaScript**: Lógica para la interacción con la API de Spotify.
 - **Spotify Web API**: Para autenticación y manejo de datos de usuario.
 
@@ -71,4 +74,4 @@ Visita `http://localhost:5500` en tu navegador.
 ---
 
 ## 📜 Licencia
-Este proyecto está licenciado bajo la **MIT License**. Puedes ver más detalles en el archivo `LICENSE`.
+Este proyecto está licenciado bajo la **MIT License**. Puedes ver más detalles en el archivo `LICENSE`. 
